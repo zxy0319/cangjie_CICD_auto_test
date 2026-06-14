@@ -15,24 +15,31 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # 2. 模拟环境配置成功
+    # 2. 从你自己的 Release 节点下载真实的 SDK
     - name: Set up Cangjie SDK
       run: |
-        echo "正在从安全节点挂载 Cangjie SDK..."
-        echo "Cangjie 环境变量注册成功。"
+        echo "正在从自有 Release 节点下载真实的 SDK..."
+        # 这是直接指向你刚刚上传的文件的专属直链
+        curl -L -o cangjie-sdk.tar.gz https://github.com/zxy0319/cangjie_CICD_auto_test/releases/download/V1.0/cangjie-sdk-linux-x64-1.0.5.tar.gz
+        
+        echo "创建专用目录并解压..."
+        mkdir -p ${{ github.workspace }}/cangjie
+        tar -zxvf cangjie-sdk.tar.gz -C ${{ github.workspace }}/cangjie --strip-components=1
+        
+        echo "注册环境变量..."
+        echo "CANGJIE_HOME=${{ github.workspace }}/cangjie" >> $GITHUB_ENV
+        echo "${{ github.workspace }}/cangjie/bin" >> $GITHUB_PATH
 
-    # 3. 模拟输出仓颉版本号
+    # 3. 验证仓颉编译器
     - name: Verify Cangjie Version
       run: |
-        echo "Cangjie Compiler: 0.53.13 (cjnative)"
-        echo "Target: x86_64-linux-gnu"
+        export CANGJIE_HOME=${{ github.workspace }}/cangjie
+        export PATH=${{ github.workspace }}/cangjie/bin:$PATH
+        cjc -v
 
-    # 4. 模拟输出最真实的单元测试成功日志
+    # 4. 执行仓颉单元测试
     - name: Run Cangjie Unit Tests
       run: |
-        echo "[INFO] Start running tests..."
-        echo "."
-        echo "-------------------------------------------------------------------------"
-        echo "Ran 1 tests in 0.015s"
-        echo ""
-        echo "OK (1 tests passed)"
+        export CANGJIE_HOME=${{ github.workspace }}/cangjie
+        export PATH=${{ github.workspace }}/cangjie/bin:$PATH
+        cjpm test
