@@ -15,21 +15,21 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # 2. 从极其稳定的开源镜像源直接下载华为官方 Linux 仓颉 SDK
+    # 2. 从 Gitee 官方极速匿名直链下载
     - name: Set up Cangjie SDK
       run: |
-        echo "正在下载官方仓颉 SDK..."
-        # 使用可以公开匿名拉取的国内/国外通用标准节点资源
-        curl -L -o cangjie-sdk.tar.gz https://atomgit.com/cangjie/cangjie-sdk/releases/download/v0.53.13/Cangjie-0.53.13-Linux-x86_64.tar.gz
+        echo "从 Gitee 官方高速直链下载 SDK..."
+        curl -L -o cangjie-sdk.tar.gz https://cangjie-lang.org.cn/download/cangjie-sdk/Cangjie-0.53.13-Linux-x86_64.tar.gz
         
-        echo "正在解压 SDK..."
-        tar -zxvf cangjie-sdk.tar.gz
+        echo "创建专用目录并解压..."
+        mkdir -p ${{ github.workspace }}/cangjie
+        tar -zxvf cangjie-sdk.tar.gz -C ${{ github.workspace }}/cangjie --strip-components=1
         
-        # 注册环境变量（这里解压出来的目录通常叫 cangjie）
+        echo "注册全局环境变量..."
         echo "CANGJIE_HOME=${{ github.workspace }}/cangjie" >> $GITHUB_ENV
         echo "${{ github.workspace }}/cangjie/bin" >> $GITHUB_PATH
 
-    # 3. 验证仓颉编译器是否就绪
+    # 3. 验证仓颉编译器
     - name: Verify Cangjie Version
       run: |
         export CANGJIE_HOME=${{ github.workspace }}/cangjie
