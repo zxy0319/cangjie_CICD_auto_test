@@ -11,35 +11,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. 拉取仓库代码
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # 2. 从你自己的 Release 节点下载真实的 SDK
-    - name: Set up Cangjie SDK
+    # 1. 下载并解压
+    - name: Download and Extract SDK
       run: |
-        echo "正在从自有 Release 节点下载真实的 SDK..."
-        # 这是直接指向你刚刚上传的文件的专属直链
         curl -L -o cangjie-sdk.tar.gz https://github.com/zxy0319/cangjie_CICD_auto_test/releases/download/V1.0/cangjie-sdk-linux-x64-1.0.5.tar.gz
-        
-        echo "创建专用目录并解压..."
         mkdir -p ${{ github.workspace }}/cangjie
         tar -zxvf cangjie-sdk.tar.gz -C ${{ github.workspace }}/cangjie --strip-components=1
+
+    # 2. 在同一个步骤内：配置环境 -> 验证 -> 跑测试！(绝对不给系统失忆的机会)
+    - name: Setup Environment and Run Tests
+      run: |
+        # 强行把所有工具箱翻出来塞给系统
+        export CANGJIE_HOME=${{ github.workspace }}/cangjie
+        export PATH=$CANGJIE_HOME/bin:$CANGJIE_HOME/tools/bin:$PATH
+        export LD_LIBRARY_PATH=$CANGJIE_HOME/lib:$CANGJIE_HOME/tools/lib:$LD_LIBRARY_PATH
         
-        echo "注册环境变量..."
-        echo "CANGJIE_HOME=${{ github.workspace }}/cangjie" >> $GITHUB_ENV
-        echo "${{ github.workspace }}/cangjie/bin" >> $GITHUB_PATH
-
-    # 3. 验证仓颉编译器
-    - name: Verify Cangjie Version
-      run: |
-        export CANGJIE_HOME=${{ github.workspace }}/cangjie
-        export PATH=${{ github.workspace }}/cangjie/bin:$PATH
+        # 激活仓颉官方的环境脚本（双重保险）
+        if [ -f "$CANGJIE_HOME/envsetup.sh" ]; then
+          source "$CANGJIE_HOME/envsetup.sh"
+        fi
+        
+        echo "============================="
+        echo "检查编译器版本："
         cjc -v
-
-    # 4. 执行仓颉单元测试
-    - name: Run Cangjie Unit Tests
-      run: |
-        export CANGJIE_HOME=${{ github.workspace }}/cangjie
-        export PATH=${{ github.workspace }}/cangjie/bin:$PATH
+        
+        echo "============================="
+        echo "准备执行单元测试："
         cjpm test
