@@ -9,25 +9,21 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    # 🌟 关键：直接使用官方/社区维护的仓颉环境镜像
+    container:
+      image: horofg/cangjie:latest
 
     steps:
+    # 第一步：拉取仓库代码
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Set up Cangjie SDK
-      run: |
-        echo "正在下载仓颉 SDK..."
-        # ⚠️ 注意：这里的 URL 需要替换为你们课程官方提供的 Linux 版本 SDK 下载链接
-        curl -L -O https://example.com/path/to/cangjie-sdk-linux-x64.tar.gz 
-        tar -zxvf cangjie-sdk-linux-x64.tar.gz
-        
-        echo "CANGJIE_HOME=${{ github.workspace }}/cangjie" >> $GITHUB_ENV
-        echo "${{ github.workspace }}/cangjie/bin" >> $GITHUB_PATH
-
+    # 第二步：验证仓颉编译器是否开箱即用
     - name: Verify Cangjie Version
       run: |
         cjc -v
 
+    # 第三步：执行仓颉单元测试
     - name: Run Cangjie Unit Tests
       run: |
         cjpm test
