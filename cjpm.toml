@@ -1,0 +1,7 @@
+[package]
+name = "hello_cj"
+version = "0.1.0"
+compile-option = ""
+link-option = ""
+output-type = "executable"
+src-dir = "src"
