@@ -1,4 +1,5 @@
 [package]
+cjc-version = "1.0.5"
 name = "hello_cj"
 version = "0.1.0"
 compile-option = ""
